@@ -6,6 +6,10 @@ import java.util.LinkedList;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 
+import exceptions.EdgeNotInGraphException;
+import exceptions.ListNotValidException;
+import exceptions.VertexNotInGraphException;
+
 import abstractclasses.AbstractGraph;
 
 public class ListGraph extends AbstractGraph {
@@ -13,7 +17,27 @@ public class ListGraph extends AbstractGraph {
 	private int noOfVertices;
 	private ArrayList<LinkedList<Integer>> adjacencyList;
 	
+	
 	public ListGraph(int v, ArrayList<LinkedList<Integer>> l) {
+		
+		for (int i = 0; i < l.size(); i++) {
+			for (int j = 0; j < l.get(i).size(); j++) {
+				if (l.get(i).get(j) >= v) {
+					throw new VertexNotInGraphException();
+				}	
+			}			
+		}
+		
+		for (int i = 0; i < l.size(); i++) {
+			for (int j = 0; j < l.size(); j++) {
+				if (l.get(i).contains(j) && j >= l.size() || 
+						(l.get(i).contains(j) && !l.get(j).contains(i)) || 
+						(!l.get(i).contains(j) && l.get(j).contains(i))) {
+					throw new ListNotValidException();
+				}
+			}
+		}
+		
 		this.noOfVertices = v;
 		this.adjacencyList = l;
 	}
@@ -70,6 +94,11 @@ public class ListGraph extends AbstractGraph {
 		
 	@Override
 	public Multiset<Edge> getEdgesAt(int vertex) {
+
+		if (vertex >= getNoOfVertices()) {
+			throw new VertexNotInGraphException();
+		}
+		
 		Multiset<Edge> edgesAt = HashMultiset.create();
 		
 		for (int j = 0; j < getAdjacencyList().get(vertex).size(); j++) {
@@ -87,7 +116,8 @@ public class ListGraph extends AbstractGraph {
 		
 		setNoOfVertices(oldNoOfVertices + noOfNewVertices);
 
-		ArrayList<LinkedList<Integer>> newList = new ArrayList<LinkedList<Integer>>(getNoOfVertices());
+		ArrayList<LinkedList<Integer>> newList = 
+				new ArrayList<LinkedList<Integer>>(getNoOfVertices());
 				
 		for (int i = 0; i < oldNoOfVertices; i++) {
 			LinkedList<Integer> list = new LinkedList<Integer>();
@@ -102,17 +132,24 @@ public class ListGraph extends AbstractGraph {
 	@Override
 	public void addEdge(int start, int end) {				
 		
+		if (start >= getNoOfVertices() || end >= getNoOfVertices()) {
+			throw new VertexNotInGraphException();
+		}
+		
 		int i = 0;
-		while (i < getAdjacencyList().get(start).size() && getAdjacencyList().get(start).get(i) < end) {
+		while (i < getAdjacencyList().get(start).size() && 
+				getAdjacencyList().get(start).get(i) < end) {
 			i++;
 		}
 
 		int j = 0;
-		while (j < getAdjacencyList().get(end).size() && getAdjacencyList().get(end).get(j) < start) {
+		while (j < getAdjacencyList().get(end).size() && 
+				getAdjacencyList().get(end).get(j) < start) {
 			j++;
 		}
 		
-		ArrayList<LinkedList<Integer>> newList = new ArrayList<LinkedList<Integer>>(getNoOfVertices());
+		ArrayList<LinkedList<Integer>> newList = 
+				new ArrayList<LinkedList<Integer>>(getNoOfVertices());
 		
 		for (int k = 0; k < getAdjacencyList().size(); k++) {
 			if (k != start && k != end) {
@@ -138,8 +175,12 @@ public class ListGraph extends AbstractGraph {
 	// WE SUPPOSE THAT VERTEX IS IN GRAPH
 	@Override
 	public void removeVertex(int v) {
-		
-		ArrayList<LinkedList<Integer>> newList = new ArrayList<LinkedList<Integer>>();
+
+		if (v >= getNoOfVertices()) {
+			throw new VertexNotInGraphException();
+		}
+		ArrayList<LinkedList<Integer>> newList = 
+				new ArrayList<LinkedList<Integer>>();
 				
 		for (int i = 0; i < v; i++) {
 			LinkedList<Integer> list = new LinkedList<Integer>();
@@ -173,10 +214,20 @@ public class ListGraph extends AbstractGraph {
 	@Override
 	public void removeEdge(int start, int end) {
 		
+		if (start >= getNoOfVertices() || end >= getNoOfVertices()) {
+			throw new VertexNotInGraphException();
+		}
+		
+		if (!getAdjacencyList().get(start).contains(end) || 
+				!getAdjacencyList().get(end).contains(start)) {
+			throw new EdgeNotInGraphException();
+		}
+		
 		int i = getAdjacencyList().get(start).indexOf(end);
 		int j = getAdjacencyList().get(end).indexOf(start);
 
-		ArrayList<LinkedList<Integer>> newList = new ArrayList<LinkedList<Integer>>(getNoOfVertices());
+		ArrayList<LinkedList<Integer>> newList = 
+				new ArrayList<LinkedList<Integer>>(getNoOfVertices());
 		
 		for (int k = 0; k < getNoOfVertices(); k++) {
 			if (k != start && k != end) {

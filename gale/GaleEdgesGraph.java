@@ -1,5 +1,8 @@
 package gale;
 
+import java.util.ArrayList;
+
+import exceptions.GraphNotEulerianException;
 import graphimplementations.Edge;
 import graphimplementations.EdgesGraph;
 
@@ -31,7 +34,31 @@ public class GaleEdgesGraph {
 		this.graph = new EdgesGraph(g.getMaxLabel(), edges);
 	}
 
-	// TODO: constructor from Eulerian graph: follow an Eulerian loop & that is the Gale string
+	// TODO: constructor from Eulerian graph: follow an Eulerian loop 
+	// & that is the Gale labelstring
+	// then find Perfect Matching, that is bitstring
+//	public GaleEdgesGraph(EdgesGraph g) {
+//		if (!graph.isEulerian()) {
+//			throw new GraphNotEulerianException();
+//		}
+//		
+//		ArrayList<Integer> tour = graph.getEulerianCycle(g, 0);
+//		
+//		int[] labels = new int[tour.size()];
+//		
+//		for (int i = 0; i < tour.size(); i++) {
+//			labels[i] = tour.get(i);
+//		}
+//		
+//		EdgesGraph matching = g.getPerfectMatching();
+//		
+//		int[] bitstring = new int[labels.length];
+//		
+//		///...
+//
+//		this.graph = g;
+//		this.gale = new GaleString(labels, bitstring);
+//	}
 	
 	public GaleString getGaleString() {
 		return this.gale;

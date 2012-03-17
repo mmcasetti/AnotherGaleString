@@ -4,11 +4,14 @@ import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.junit.Test;
 
 import abstractclasses.AbstractGraph;
 
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.HashMultiset;
 
@@ -16,28 +19,23 @@ import factories.EdgesGraphFactory;
 import factories.ListGraphFactory;
 import factories.MatrixGraphFactory;
 import graphimplementations.EdgesGraph;
-import graphimplementations.Exceptions.EdgeNotInGraphException;
-import graphimplementations.Exceptions.VertexNotInGraphException;
 import graphimplementations.ListGraph;
 import graphimplementations.MatrixGraph;
 import graphimplementations.Edge;
+import exceptions.*;
 
 public class GraphTest {
 
 	public MatrixGraphFactory matrixFactory = new MatrixGraphFactory();
 	public EdgesGraphFactory edgesFactory = new EdgesGraphFactory();
 	public ListGraphFactory listFactory = new ListGraphFactory();
-	
+		
 	@Test
 	public void testEquals_Matrix_true() {
 		
-		int[][] adjacency = new int[3][3];
-		
-		adjacency[0][1] = 1;
-		adjacency[1][0] = 1;
-		adjacency[1][2] = 1;
-		adjacency[2][1] = 1;
-		adjacency[2][2] = 1;
+		int[][] adjacency = {{ 0, 1, 0 },
+							 { 1, 0, 1 },
+							 { 0, 1, 1 }};
 
 		AbstractGraph graph = matrixFactory.createMatrixGraph(adjacency);
 
@@ -103,19 +101,47 @@ public class GraphTest {
 	@Test
 	public void testFactoriesMatrix_MatrixEdge_true() {
 		
-		int[][] incidence = new int[3][3];
-		
-		incidence[0][1] = 1;
-		incidence[1][0] = 1;
-		incidence[1][2] = 1;
-		incidence[2][1] = 1;
-		incidence[2][2] = 1;
+		int[][] incidence = {{ 0, 1, 0 },
+							 { 1, 0, 1 },	
+							 { 0, 1, 1 }};
 
 		AbstractGraph graph = matrixFactory.createMatrixGraph(incidence);
 		
 		AbstractGraph otherGraph = edgesFactory.createEdgesGraph(incidence);
 		
 		assertTrue(graph.equals(otherGraph));
+	}
+	
+	@Test
+	public void testFactoriesMatrix_MatrixList_true() {
+		
+		int[][] incidence = {{ 0, 1, 0 },
+				 			 { 1, 0, 1 },
+				 			 { 0, 1, 1 }};
+
+		AbstractGraph graph = matrixFactory.createMatrixGraph(incidence);
+		
+		AbstractGraph otherGraph = listFactory.createListGraph(incidence);
+		
+		assertTrue(graph.equals(otherGraph));
+	}
+
+	@Test
+	public void testFactoriesMatrix_exception() {
+		
+		int[][] incidence ={{ 0, 1, 0 },
+				 			{ 1, 0, 0 },
+				 			{ 0, 1, 1 }};
+
+		boolean thrown = false;
+		
+		try {
+			AbstractGraph graph = matrixFactory.createMatrixGraph(incidence);			
+		} catch (MatrixNotValidException e) {
+			thrown = true;
+		}
+				
+		assertTrue(thrown);
 	}
 	
 	
@@ -143,13 +169,9 @@ public class GraphTest {
 	@Test
 	public void testFactories_MatrixEdge_true() {
 		
-		int[][] incidence = new int[3][3];
-		
-		incidence[0][1] = 1;
-		incidence[1][0] = 1;
-		incidence[1][2] = 1;
-		incidence[2][1] = 1;
-		incidence[2][2] = 1;
+		int[][] incidence = {{ 0, 1, 0 },
+							 { 1, 0, 1 },
+							 { 0, 1, 1 }};
 		
 		int v = 3;
 		
@@ -170,26 +192,60 @@ public class GraphTest {
 	}
 
 	@Test
-	public void testFactories_MatrixEdge_2_true() {
-		int[][] incidence = new int[6][6];
+	public void testFactoriesEdges_ListEdge_true() {
 		
-		incidence[0][1] = 1;
-		incidence[0][2] = 1;
-		incidence[1][0] = 1;
-		incidence[1][1] = 1;
-		incidence[1][3] = 1;
-		incidence[2][0] = 1;
-		incidence[2][4] = 1;
-		incidence[2][5] = 1;
-		incidence[3][1] = 1;
-		incidence[3][4] = 1;
-		incidence[3][5] = 1;
-		incidence[4][2] = 1;
-		incidence[4][3] = 1;
-		incidence[4][5] = 1;
-		incidence[5][2] = 1;
-		incidence[5][3] = 1;
-		incidence[5][4] = 1;
+		int v = 3;
+	 	
+		Multiset<Edge> e = HashMultiset.create();		
+		
+		Edge e0 = new Edge(0,1);
+		e.add(e0);
+		Edge e1 = new Edge(1,2);
+		e.add(e1);
+		Edge e2 = new Edge(2,2);
+		e.add(e2);
+
+		AbstractGraph graph = listFactory.createListGraph(v, e);
+		
+		AbstractGraph otherGraph = edgesFactory.createEdgesGraph(v, e);
+		
+		assertTrue(graph.equals(otherGraph));
+	}
+
+	@Test
+	public void testFactoriesEdges_exception() {
+		
+		int v = 3;
+	 	
+		Multiset<Edge> e = HashMultiset.create();		
+		
+		Edge e0 = new Edge(0,1);
+		e.add(e0);
+		Edge e1 = new Edge(1,2);
+		e.add(e1);
+		Edge e2 = new Edge(2,3);
+		e.add(e2);
+
+		boolean thrown = false;
+		
+		try {
+			AbstractGraph graph = matrixFactory.createMatrixGraph(v, e);			
+		} catch (VertexNotInGraphException ex) {
+			thrown = true;
+		}
+				
+		assertTrue(thrown);
+	}
+
+	
+	@Test
+	public void testFactories_MatrixEdge_2_true() {
+		int[][] incidence = {{ 0, 1, 1, 0, 0, 0 },
+							 { 1, 1, 0, 1, 0, 0 },
+							 { 1, 0, 0, 0, 1, 1 },
+							 { 0, 1, 0, 0, 1, 1 },
+							 { 0, 0, 1, 1, 0, 1 },
+							 { 0, 0, 1, 1, 1, 0 }};
 
 		AbstractGraph graphIncidence = matrixFactory.createMatrixGraph(incidence);
 		
@@ -601,6 +657,130 @@ public class GraphTest {
 	}
 
 	@Test
+	public void testRemoveEdge_multiedge_Edges_true() {
+
+		int v = 4;
+		
+		Multiset<Edge> edges = HashMultiset.create();
+		Edge e0 = new Edge(0, 1);
+		edges.add(e0);
+		Edge e1 = new Edge(1, 1);
+		edges.add(e1);
+		Edge e2 = new Edge(1, 2);
+		edges.add(e2);
+		Edge e3 = new Edge(2, 3);
+		edges.add(e3);
+		Edge e4 = new Edge(2, 0);
+		edges.add(e4);
+		Edge e5 = new Edge(2, 0);
+		edges.add(e5);
+		
+		EdgesGraph graph = edgesFactory.createEdgesGraph(v, edges);
+
+		graph.removeEdge(2, 0);
+		
+		Multiset<Edge> newEdges = HashMultiset.create();
+		Edge e = new Edge(0, 1);
+		newEdges.add(e);
+		Edge f = new Edge(1, 1);
+		newEdges.add(f);
+		Edge g = new Edge(1, 2);
+		newEdges.add(g);
+		Edge h = new Edge(2, 3);
+		newEdges.add(h);
+		Edge i = new Edge(2, 0);
+		newEdges.add(i);
+		
+		EdgesGraph newGraph = edgesFactory.createEdgesGraph(v, newEdges);
+		
+		assertTrue(graph.equals(newGraph));		
+	}
+
+	@Test
+	public void testRemoveEdge_multiedge_reverse1_Edges_true() {
+
+		int v = 4;
+		
+		Multiset<Edge> edges = HashMultiset.create();
+		Edge e0 = new Edge(0, 1);
+		edges.add(e0);
+		Edge e1 = new Edge(1, 1);
+		edges.add(e1);
+		Edge e2 = new Edge(1, 2);
+		edges.add(e2);
+		Edge e3 = new Edge(2, 3);
+		edges.add(e3);
+		Edge e4 = new Edge(2, 0);
+		edges.add(e4);
+		Edge e5 = new Edge(0, 2);
+		edges.add(e5);
+		
+		EdgesGraph graph = edgesFactory.createEdgesGraph(v, edges);
+
+		graph.removeEdge(2, 0);
+		
+		Multiset<Edge> newEdges = HashMultiset.create();
+		Edge e = new Edge(0, 1);
+		newEdges.add(e);
+		Edge f = new Edge(1, 1);
+		newEdges.add(f);
+		Edge g = new Edge(1, 2);
+		newEdges.add(g);
+		Edge h = new Edge(2, 3);
+		newEdges.add(h);
+		Edge i = new Edge(2, 0);
+		newEdges.add(i);
+		
+		EdgesGraph newGraph = edgesFactory.createEdgesGraph(v, newEdges);
+		
+		assertTrue(graph.equals(newGraph));		
+	}
+	
+	@Test
+	public void testRemoveEdge_multiedge_reverse2_Edges_true() {
+
+		int v = 4;
+		
+		Multiset<Edge> edges = HashMultiset.create();
+		Edge e0 = new Edge(0, 1);
+		edges.add(e0);
+		Edge e1 = new Edge(1, 1);
+		edges.add(e1);
+		Edge e2 = new Edge(1, 2);
+		edges.add(e2);
+		Edge e3 = new Edge(2, 3);
+		edges.add(e3);
+		Edge e4 = new Edge(2, 0);
+		edges.add(e4);
+		Edge e5 = new Edge(0, 2);
+		edges.add(e5);
+		Edge e6 = new Edge(2, 0);
+		edges.add(e6);
+		
+		EdgesGraph graph = edgesFactory.createEdgesGraph(v, edges);
+
+		graph.removeEdge(2, 0);
+		
+		Multiset<Edge> newEdges = HashMultiset.create();
+		Edge e = new Edge(0, 1);
+		newEdges.add(e);
+		Edge f = new Edge(1, 1);
+		newEdges.add(f);
+		Edge g = new Edge(1, 2);
+		newEdges.add(g);
+		Edge h = new Edge(2, 3);
+		newEdges.add(h);
+		Edge i = new Edge(2, 0);
+		newEdges.add(i);
+		Edge j = new Edge(2, 0);
+		newEdges.add(j);
+		
+		EdgesGraph newGraph = edgesFactory.createEdgesGraph(v, newEdges);
+		
+		assertTrue(graph.equals(newGraph));		
+	}
+
+	@Test
 	public void testRemoveEdge_Edges_exceptionEdge() {
 
 		int v = 4;
@@ -810,43 +990,27 @@ public class GraphTest {
 	
 	@Test
 	public void testPerfectMatching_Incidence_true() {
-		int[][] incidence = new int[6][6];
-		
-		incidence[0][1] = 1;
-		incidence[0][2] = 1;
-		incidence[1][0] = 1;
-		incidence[1][1] = 1;
-		incidence[1][3] = 1;
-		incidence[2][0] = 1;
-		incidence[2][4] = 1;
-		incidence[2][5] = 1;
-		incidence[3][1] = 1;
-		incidence[3][4] = 1;
-		incidence[3][5] = 1;
-		incidence[4][2] = 1;
-		incidence[4][3] = 1;
-		incidence[4][5] = 1;
-		incidence[5][2] = 1;
-		incidence[5][3] = 1;
-		incidence[5][4] = 1;
-
+		int[][] incidence = {{ 0, 1, 1, 0, 0, 0 },
+				 			 { 1, 1, 0, 1, 0, 0 },
+				 			 { 1, 0, 0, 0, 1, 1 },
+				 			 { 0, 1, 0, 0, 1, 1 },
+				 			 { 0, 0, 1, 1, 0, 1 },
+				 			 { 0, 0, 1, 1, 1, 0 }};
 		MatrixGraph graphIncidence = matrixFactory.createMatrixGraph(incidence);
 		
-		int[][] sub = new int[6][6];
-		
-		sub[0][1] = 1;
-		sub[1][0] = 1;
-		sub[2][4] = 1;
-		sub[4][2] = 1;
-		sub[3][5] = 1;
-		sub[5][3] = 1;
+		int[][] sub = {{ 0, 1, 0, 0, 0, 0 },
+					   { 1, 0, 0, 0, 0, 0 },
+					   { 0, 0, 0, 0, 1, 0 },
+					   { 0, 0, 0, 0, 0, 1 },
+					   { 0, 0, 1, 0, 0, 0 },
+					   { 0, 0, 0, 1, 0, 0 }};
 		
 		assertTrue(graphIncidence.isPerfectMatching(sub));
 	}
 
 
 	@Test
-	public void testListFactory_MatrixList_true() {
+	public void testFactoryList_MatrixList_true() {
 		
 		int[][] matrix = {{ 0, 1, 1, 0, 0 },
 						  { 1, 1, 1, 0, 0 },
@@ -883,7 +1047,7 @@ public class GraphTest {
 	}
 	
 	@Test
-	public void testListFactory_EdgesList_true() {
+	public void testFactoryList_EdgesList_true() {
 
 		int v = 5;
 		
@@ -927,7 +1091,7 @@ public class GraphTest {
 	}
 
 	@Test
-	public void testListFactory_EdgesMatrix_true() {
+	public void testFactoryList_EdgesMatrix_true() {
 
 		int v = 5;
 		
@@ -955,7 +1119,77 @@ public class GraphTest {
 		
 		assertTrue(graph.equals(otherGraph));
 	}
+
+	@Test
+	public void testListFactory_exceptionVertex() {
+		
+		int v = 3;
+		
+		ArrayList<LinkedList<Integer>> list = new ArrayList<LinkedList<Integer>>(5);
+		
+		LinkedList<Integer> list0 = new LinkedList<Integer>();
+		list0.add(1);
+		list0.add(2);
+		list.add(list0);
+		LinkedList<Integer> list1 = new LinkedList<Integer>();
+		list1.add(0);
+		list1.add(1);
+		list1.add(2);
+		list.add(list1);
+		LinkedList<Integer> list2 = new LinkedList<Integer>();
+		list2.add(0);
+		list2.add(1);
+		list2.add(3);
+		list.add(list2);	
+		LinkedList<Integer> list3 = new LinkedList<Integer>();
+		list3.add(2);
+		list.add(list3);
+		
+		boolean thrown = false;
+		
+		try {
+			AbstractGraph graph = listFactory.createListGraph(v, list);
+		} catch (VertexNotInGraphException e) {
+			thrown = true;
+		}
+		
+		assertTrue(thrown);
+	}
 	
+	@Test
+	public void testListFactory_exceptionList() {
+		
+		int v = 4;
+		
+		ArrayList<LinkedList<Integer>> list = new ArrayList<LinkedList<Integer>>(5);
+		
+		LinkedList<Integer> list0 = new LinkedList<Integer>();
+		list0.add(1);
+		list.add(list0);
+		LinkedList<Integer> list1 = new LinkedList<Integer>();
+		list1.add(0);
+		list1.add(1);
+		list1.add(2);
+		list.add(list1);
+		LinkedList<Integer> list2 = new LinkedList<Integer>();
+		list2.add(0);
+		list2.add(1);
+		list2.add(3);
+		list.add(list2);	
+		LinkedList<Integer> list3 = new LinkedList<Integer>();
+		list3.add(2);
+		list.add(list3);
+		
+		boolean thrown = false;
+		
+		try {
+			AbstractGraph graph = listFactory.createListGraph(v, list);
+		} catch (ListNotValidException e) {
+			thrown = true;
+		}
+		
+		assertTrue(thrown);
+	}
 	@Test
 	public void testFactories_MatrixList_true() {
 		
@@ -1151,10 +1385,46 @@ public class GraphTest {
 		assertTrue(graph.equals(otherGraph));
 	}	
 	
+	@Test
+	public void testAddEdge_List_exception() {
+		int v0 = 4;
+		
+		ArrayList<LinkedList<Integer>> adjacency0 = new ArrayList<LinkedList<Integer>>(v0);
+		
+		LinkedList<Integer> list00 = new LinkedList<Integer>();
+		list00.add(1);
+		list00.add(2);
+		adjacency0.add(list00);
+		LinkedList<Integer> list10 = new LinkedList<Integer>();
+		list10.add(0);
+		list10.add(1);
+		list10.add(2);
+		adjacency0.add(list10);
+		LinkedList<Integer> list20 = new LinkedList<Integer>();
+		list20.add(0);
+		list20.add(1);
+		list20.add(3);
+		adjacency0.add(list20);	
+		LinkedList<Integer> list30 = new LinkedList<Integer>();
+		list30.add(2);
+		adjacency0.add(list30);
+
+		ListGraph graph = listFactory.createListGraph(v0, adjacency0);
+		
+		boolean thrown = false;
+		
+		try {
+			graph.addEdge(4, 0);			
+		} catch (VertexNotInGraphException e) {
+			thrown = true;
+		}
+
+		assertTrue(thrown);
+	}	
 	
 	
 	@Test
-	public void testRemoveVertices_List_true() {
+	public void testRemoveVertex_List_true() {
 
 		int v0 = 4;
 		
@@ -1190,20 +1460,60 @@ public class GraphTest {
 		
 		LinkedList<Integer> list01 = new LinkedList<Integer>();
 		list01.add(1);
-		list01.add(3);
+		list01.add(2);
 		adjacency1.add(list01);
 		LinkedList<Integer> list11 = new LinkedList<Integer>();
 		list11.add(0);
 		list11.add(1);
 		adjacency1.add(list11);
-		LinkedList<Integer> list31 = new LinkedList<Integer>();
-		list31.add(0);
-		adjacency1.add(list31);
+		LinkedList<Integer> list21 = new LinkedList<Integer>();
+		list21.add(0);
+		adjacency1.add(list21);
+		
 		ListGraph otherGraph = listFactory.createListGraph(v1, adjacency1);
 		
 		assertTrue(graph.equals(otherGraph));
 	}
 
+	public void testRemoveVertex_List_exception() {
+
+		int v0 = 4;
+		
+		ArrayList<LinkedList<Integer>> adjacency0 = new ArrayList<LinkedList<Integer>>(v0);
+		
+		LinkedList<Integer> list00 = new LinkedList<Integer>();
+		list00.add(1);
+		list00.add(2);
+		list00.add(3);
+		adjacency0.add(list00);
+		LinkedList<Integer> list10 = new LinkedList<Integer>();
+		list10.add(0);
+		list10.add(1);
+		list10.add(2);
+		adjacency0.add(list10);
+		LinkedList<Integer> list20 = new LinkedList<Integer>();
+		list20.add(0);
+		list20.add(1);
+		list20.add(3);
+		adjacency0.add(list20);	
+		LinkedList<Integer> list30 = new LinkedList<Integer>();
+		list30.add(0);
+		list30.add(2);
+		adjacency0.add(list30);
+
+		ListGraph graph = listFactory.createListGraph(v0, adjacency0);
+
+		boolean thrown = false;
+		
+		try {
+			graph.removeVertex(4);			
+		} catch (VertexNotInGraphException e) {
+			thrown = true;
+		}
+
+		assertTrue(thrown);
+	}
+	
 	@Test
 	public void testRemoveEdge_List_true() {
 
@@ -1261,6 +1571,87 @@ public class GraphTest {
 		
 		assertTrue(graph.equals(otherGraph));
 	}	
+	
+	@Test
+	public void testRemoveEdge_List_exceptionEdge() {
+
+		int v0 = 4;
+		
+		ArrayList<LinkedList<Integer>> adjacency0 = new ArrayList<LinkedList<Integer>>(v0);
+		
+		LinkedList<Integer> list00 = new LinkedList<Integer>();
+		list00.add(1);
+		list00.add(2);
+		list00.add(3);
+		adjacency0.add(list00);
+		LinkedList<Integer> list10 = new LinkedList<Integer>();
+		list10.add(0);
+		list10.add(1);
+		list10.add(2);
+		adjacency0.add(list10);
+		LinkedList<Integer> list20 = new LinkedList<Integer>();
+		list20.add(0);
+		list20.add(1);
+		list20.add(3);
+		adjacency0.add(list20);	
+		LinkedList<Integer> list30 = new LinkedList<Integer>();
+		list30.add(0);
+		list30.add(2);
+		adjacency0.add(list30);
+
+		ListGraph graph = listFactory.createListGraph(v0, adjacency0);
+		
+		boolean thrown = false;
+		
+		try {
+			graph.removeEdge(1, 3);
+		} catch (EdgeNotInGraphException e) {
+			thrown = true;
+		}
+		
+		assertTrue(thrown);
+	}
+	
+	@Test
+	public void testRemoveEdge_List_exceptionVertex() {
+
+		int v0 = 4;
+		
+		ArrayList<LinkedList<Integer>> adjacency0 = new ArrayList<LinkedList<Integer>>(v0);
+		
+		LinkedList<Integer> list00 = new LinkedList<Integer>();
+		list00.add(1);
+		list00.add(2);
+		list00.add(3);
+		adjacency0.add(list00);
+		LinkedList<Integer> list10 = new LinkedList<Integer>();
+		list10.add(0);
+		list10.add(1);
+		list10.add(2);
+		adjacency0.add(list10);
+		LinkedList<Integer> list20 = new LinkedList<Integer>();
+		list20.add(0);
+		list20.add(1);
+		list20.add(3);
+		adjacency0.add(list20);	
+		LinkedList<Integer> list30 = new LinkedList<Integer>();
+		list30.add(0);
+		list30.add(2);
+		adjacency0.add(list30);
+
+		ListGraph graph = listFactory.createListGraph(v0, adjacency0);
+		
+		boolean thrown = false;
+		
+		try {
+			graph.removeEdge(0, 4);
+		} catch (VertexNotInGraphException e) {
+			thrown = true;
+		}
+		
+		assertTrue(thrown);
+	}	
+
 	
 	@Test
 	public void testIsEulerian_List_false() {
@@ -1321,5 +1712,585 @@ public class GraphTest {
 		ListGraph graph = listFactory.createListGraph(v, list);
 				
 		assertTrue(graph.isEulerian());
+	}
+	
+	@Test
+	public void testMergeCycles_true() {
+		int v = 4;
+		
+		Multiset<Edge> e = HashMultiset.create();		
+		
+		Edge e0 = new Edge(0, 1);
+		e.add(e0);
+		Edge e1 = new Edge(1, 2);
+		e.add(e1);
+		Edge e2 = new Edge(2, 0);
+		e.add(e2);
+		Edge e3 = new Edge(1, 3);
+		e.add(e3);
+		Edge e4 = new Edge(3, 2);
+		e.add(e4);
+		Edge e5 = new Edge (2, 1);
+		e.add(e5);
+		
+		EdgesGraph graph = edgesFactory.createEdgesGraph(v, e);
+	
+		List<Integer> tour1 = Lists.newArrayList();
+		
+		tour1.add(0);
+		tour1.add(1);
+		tour1.add(2);
+
+		List<Integer> tour2 = Lists.newArrayList();
+		
+		tour2.add(1);
+		tour2.add(3);
+		tour2.add(2);
+		
+		List<Integer> tour3 = Lists.newArrayList();
+		
+		tour3.add(0);
+		tour3.add(1);
+		tour3.add(3);
+		tour3.add(2);
+		tour3.add(1);
+		tour3.add(2);
+
+		Optional<List<Integer>> tourA = Optional.of(tour1);
+		Optional<List<Integer>> tourB = Optional.of(tour2);
+		Optional<List<Integer>> tourC = Optional.of(tour3);
+		
+		assertTrue(graph.mergeTours(tourA, tourB, 1).equals(tourC));
+	}
+	
+	@Test
+	public void testGetEulerianCycle_long1_true() {
+		int v = 5;
+		
+		Multiset<Edge> e = HashMultiset.create();		
+		
+		Edge e0 = new Edge(0, 1);
+		e.add(e0);
+		Edge e1 = new Edge(1, 2);
+		e.add(e1);
+		Edge e2 = new Edge(2, 0);
+		e.add(e2);
+		Edge e3 = new Edge(1, 3);
+		e.add(e3);
+		Edge e4 = new Edge(3, 4);
+		e.add(e4);
+		Edge e5 = new Edge(4, 1);
+		e.add(e5);
+		
+		EdgesGraph graph = edgesFactory.createEdgesGraph(v, e);
+	
+		List<Integer> tour = Lists.newArrayList();
+		
+		tour.add(0);
+		tour.add(1);
+		tour.add(3);
+		tour.add(4);
+		tour.add(1);
+		tour.add(2);
+		
+		Optional<List<Integer>> tourA = Optional.of(tour);
+		
+		assertTrue(graph.getEulerianCycle(graph, 0).equals(tourA));
 	}	
+	
+	@Test
+	public void testGetEulerianCycle_long2_true() {
+		int v = 6;
+		
+		Multiset<Edge> e = HashMultiset.create();		
+		
+		Edge e0 = new Edge(0, 1);
+		e.add(e0);
+		Edge e1 = new Edge(1, 2);
+		e.add(e1);
+		Edge e2 = new Edge(2, 0);
+		e.add(e2);
+		Edge e3 = new Edge(1, 3);
+		e.add(e3);
+		Edge e4 = new Edge(3, 4);
+		e.add(e4);
+		Edge e5 = new Edge(4, 1);
+		e.add(e5);
+		Edge e6 = new Edge(2, 4);
+		e.add(e6);
+		Edge e7 = new Edge(4, 5);
+		e.add(e7);
+		Edge e8 = new Edge(2, 5);
+		e.add(e8);
+		
+		EdgesGraph graph = edgesFactory.createEdgesGraph(v, e);
+	
+		List<Integer> tour = Lists.newArrayList();
+		
+		tour.add(0);
+		tour.add(1);
+		tour.add(2);
+		tour.add(4);
+		tour.add(3);
+		tour.add(1);
+		tour.add(4);
+		tour.add(5);
+		tour.add(2);
+		
+		Optional<List<Integer>> tourA = Optional.of(tour);
+		
+		assertTrue(graph.getEulerianCycle(graph, 0).equals(tourA));
+	}	
+
+	@Test
+	public void testGetEulerianCycle_long3_true() {
+		int v = 7;
+		
+		Multiset<Edge> e = HashMultiset.create();		
+		
+		Edge e0 = new Edge(0, 1);
+		e.add(e0);
+		Edge e1 = new Edge(1, 2);
+		e.add(e1);
+		Edge e2 = new Edge(2, 0);
+		e.add(e2);
+		Edge e3 = new Edge(1, 3);
+		e.add(e3);
+		Edge e4 = new Edge(3, 4);
+		e.add(e4);
+		Edge e5 = new Edge(4, 1);
+		e.add(e5);
+		Edge e6 = new Edge(2, 5);
+		e.add(e6);
+		Edge e7 = new Edge(5, 6);
+		e.add(e7);
+		Edge e8 = new Edge(6, 2);
+		e.add(e8);
+		
+		EdgesGraph graph = edgesFactory.createEdgesGraph(v, e);
+	
+		List<Integer> tour = Lists.newArrayList();
+		
+		tour.add(0);
+		tour.add(1);
+		tour.add(3);
+		tour.add(4);
+		tour.add(1);
+		tour.add(2);
+		tour.add(5);
+		tour.add(6);
+		tour.add(2);
+
+		Optional<List<Integer>> tourA = Optional.of(tour);
+		
+		assertTrue(graph.getEulerianCycle(graph, 0).equals(tourA));
+	}	
+
+	@Test
+	public void testGetEulerianCycle_long4_true() {
+		int v = 7;
+		
+		Multiset<Edge> e = HashMultiset.create();		
+		
+		Edge e0 = new Edge(0, 1);
+		e.add(e0);
+		Edge e1 = new Edge(1, 2);
+		e.add(e1);
+		Edge e2 = new Edge(2, 0);
+		e.add(e2);
+		Edge e3 = new Edge(1, 3);
+		e.add(e3);
+		Edge e4 = new Edge(3, 4);
+		e.add(e4);
+		Edge e5 = new Edge(4, 1);
+		e.add(e5);
+		Edge e6 = new Edge(1, 5);
+		e.add(e6);
+		Edge e7 = new Edge(5, 6);
+		e.add(e7);
+		Edge e8 = new Edge(6, 1);
+		e.add(e8);
+		
+		EdgesGraph graph = edgesFactory.createEdgesGraph(v, e);
+	
+		List<Integer> tour = Lists.newArrayList();
+		
+		tour.add(0);
+		tour.add(1);
+		tour.add(3);
+		tour.add(4);
+		tour.add(1);
+		tour.add(5);
+		tour.add(6);
+		tour.add(1);
+		tour.add(2);
+		
+		Optional<List<Integer>> tourA = Optional.of(tour);
+		
+		assertTrue(graph.getEulerianCycle(graph, 0).equals(tourA));
+	}	
+
+	@Test
+	public void testGetEulerianCycle_long5_true() {
+		int v = 7;
+		
+		Multiset<Edge> e = HashMultiset.create();		
+		
+		Edge e0 = new Edge(0, 1);
+		e.add(e0);
+		Edge e1 = new Edge(1, 2);
+		e.add(e1);
+		Edge e2 = new Edge(2, 0);
+		e.add(e2);
+		Edge e3 = new Edge(1, 3);
+		e.add(e3);
+		Edge e4 = new Edge(3, 4);
+		e.add(e4);
+		Edge e5 = new Edge(4, 1);
+		e.add(e5);
+		Edge e6 = new Edge(3, 5);
+		e.add(e6);
+		Edge e7 = new Edge(5, 6);
+		e.add(e7);
+		Edge e8 = new Edge(6, 3);
+		e.add(e8);
+		
+		EdgesGraph graph = edgesFactory.createEdgesGraph(v, e);
+	
+		List<Integer> tour = Lists.newArrayList();
+		
+		tour.add(0);
+		tour.add(1);
+		tour.add(3);
+		tour.add(5);
+		tour.add(6);
+		tour.add(3);
+		tour.add(4);
+		tour.add(1);
+		tour.add(2);
+		 
+		Optional<List<Integer>> tourA = Optional.of(tour);
+		assertTrue(graph.getEulerianCycle(graph, 0).equals(tourA));
+	}	
+	
+	@Test
+	public void testGetEulerianCycle_long_multiEdge_true() {
+		int v = 4;
+		
+		Multiset<Edge> e = HashMultiset.create();		
+		
+		Edge e0 = new Edge(0, 1);
+		e.add(e0);
+		Edge e1 = new Edge(1, 2);
+		e.add(e1);
+		Edge e2 = new Edge(2, 0);
+		e.add(e2);
+		Edge e3 = new Edge(1, 2);
+		e.add(e3);
+		Edge e4 = new Edge(2, 3);
+		e.add(e4);
+		Edge e5 = new Edge (3, 1);
+		e.add(e5);
+		
+		EdgesGraph graph = edgesFactory.createEdgesGraph(v, e);
+	
+		List<Integer> tour = Lists.newArrayList();
+		
+		tour.add(0);
+		tour.add(1);
+		tour.add(2);
+		tour.add(3);
+		tour.add(1);
+		tour.add(2);
+		
+		Optional<List<Integer>> tourA = Optional.of(tour);
+		assertTrue(graph.getEulerianCycle(graph, 0).equals(tourA));
+	}	
+
+	@Test
+	public void testGetEulerianCycle_long_multiEdge2_true() {
+		int v = 6;
+		
+		Multiset<Edge> e = HashMultiset.create();		
+		
+		Edge e0 = new Edge(0, 1);
+		e.add(e0);
+		Edge e1 = new Edge(1, 2);
+		e.add(e1);
+		Edge e2 = new Edge(2, 0);
+		e.add(e2);
+		Edge e3 = new Edge(1, 2);
+		e.add(e3);
+		Edge e4 = new Edge(2, 3);
+		e.add(e4);
+		Edge e5 = new Edge (3, 1);
+		e.add(e5);
+		Edge e6 = new Edge (3, 4);
+		e.add(e6);
+		Edge e7 = new Edge (4, 5);
+		e.add(e7);
+		Edge e8 = new Edge (5, 3);
+		e.add(e8);
+		
+		EdgesGraph graph = edgesFactory.createEdgesGraph(v, e);
+	
+		List<Integer> tour = Lists.newArrayList();
+		
+		tour.add(0);
+		tour.add(1);
+		tour.add(2);
+		tour.add(3);
+		tour.add(4);
+		tour.add(5);
+		tour.add(3);
+		tour.add(1);
+		tour.add(2);
+		
+		Optional<List<Integer>> tourA = Optional.of(tour);
+		assertTrue(graph.getEulerianCycle(graph, 0).equals(tourA));
+	}	
+
+	@Test
+	public void testGetCycle_short_true() {
+		int v = 3;
+		
+		Multiset<Edge> e = HashMultiset.create();		
+		
+		Edge e0 = new Edge(0, 1);
+		e.add(e0);
+		Edge e1 = new Edge(1, 2);
+		e.add(e1);
+		Edge e2 = new Edge(2, 0);
+		e.add(e2);
+		
+		EdgesGraph graph = edgesFactory.createEdgesGraph(v, e);
+	
+		List<Integer> tour = Lists.newArrayList();
+		
+		tour.add(0);
+		tour.add(1);
+		tour.add(2);
+		
+		Optional<List<Integer>> tourA = Optional.of(tour);
+		assertTrue(graph.getCycle(graph, 0).equals(tourA));
+	}
+
+	@Test
+	public void testGetCycle_longer_true() {
+		int v = 4;
+		
+		Multiset<Edge> e = HashMultiset.create();		
+		
+		Edge e0 = new Edge(0, 1);
+		e.add(e0);
+		Edge e1 = new Edge(1, 2);
+		e.add(e1);
+		Edge e2 = new Edge(2, 0);
+		e.add(e2);
+		e.add(new Edge(2, 3));		
+		e.add(new Edge(3, 2));		
+		
+		EdgesGraph graph = edgesFactory.createEdgesGraph(v, e);
+	
+		List<Integer> tour = Lists.newArrayList();
+		
+		tour.add(0);
+		tour.add(1);
+		tour.add(2);
+		
+		Optional<List<Integer>> tourA = Optional.of(tour);
+		assertTrue(graph.getCycle(graph, 0).equals(tourA));
+	}
+
+
+	@Test
+	public void testGetCycle_multiedge_true() {
+		int v = 3;
+		
+		Multiset<Edge> e = HashMultiset.create();		
+		
+		Edge e0 = new Edge(0, 1);
+		e.add(e0);
+		Edge e1 = new Edge(1, 2);
+		e.add(e1);
+		Edge e2 = new Edge(2, 0);
+		e.add(e2);
+		e.add(new Edge(1, 2));		
+		e.add(new Edge(2, 1));		
+		
+		EdgesGraph graph = edgesFactory.createEdgesGraph(v, e);
+	
+		List<Integer> tour = Lists.newArrayList();
+		
+		tour.add(0);
+		tour.add(1);
+		tour.add(2);
+		
+		Optional<List<Integer>> tourA = Optional.of(tour);		
+		assertTrue(graph.getCycle(graph, 0).equals(tourA));
+	}
+
+	@Test
+	public void testGetEulerianCycle_short_true() {
+		int v = 3;
+		
+		Multiset<Edge> e = HashMultiset.create();		
+		
+		Edge e0 = new Edge(0, 1);
+		e.add(e0);
+		Edge e1 = new Edge(1, 2);
+		e.add(e1);
+		Edge e2 = new Edge(2, 0);
+		e.add(e2);
+		
+		EdgesGraph graph = edgesFactory.createEdgesGraph(v, e);
+	
+		List<Integer> tour = Lists.newArrayList();
+		
+		tour.add(0);
+		tour.add(1);
+		tour.add(2);
+		
+		Optional<List<Integer>> tourA = Optional.of(tour);
+		assertTrue(graph.getEulerianCycle(graph, 0).equals(tourA));
+	}
+
+	
+	
+	@Test
+	public void testGetEulerianCycle_short_loop_true() {
+		int v = 3;
+		
+		Multiset<Edge> e = HashMultiset.create();		
+		
+		Edge e0 = new Edge(0, 1);
+		e.add(e0);
+		Edge e1 = new Edge(1, 2);
+		e.add(e1);
+		Edge e2 = new Edge(2, 0);
+		e.add(e2);
+		Edge e3 = new Edge(2, 2);
+		e.add(e3);
+		
+		EdgesGraph graph = edgesFactory.createEdgesGraph(v, e);
+	
+		List<Integer> tour = Lists.newArrayList();
+		
+		tour.add(0);
+		tour.add(1);
+		tour.add(2);
+		tour.add(2);
+		
+		Optional<List<Integer>> tourA = Optional.of(tour);
+		assertTrue(graph.getEulerianCycle(graph, 0).equals(tourA));
+	}
+	
+	@Test
+	public void testGetEulerianCycle_short_multiloop_true() {
+		int v = 3;
+		
+		Multiset<Edge> e = HashMultiset.create();		
+		
+		Edge e0 = new Edge(0, 1);
+		e.add(e0);
+		Edge e1 = new Edge(1, 2);
+		e.add(e1);
+		Edge e2 = new Edge(2, 0);
+		e.add(e2);
+		Edge e3 = new Edge(2, 2);
+		e.add(e3);
+		Edge e4 = new Edge(2, 2);
+		e.add(e4);
+		
+		EdgesGraph graph = edgesFactory.createEdgesGraph(v, e);
+	
+		List<Integer> tour = Lists.newArrayList();
+		
+		tour.add(0);
+		tour.add(1);
+		tour.add(2);
+		tour.add(2);
+		tour.add(2);
+		
+		Optional<List<Integer>> tourA = Optional.of(tour);
+		assertTrue(graph.getEulerianCycle(graph, 0).equals(tourA));
+	}
+
+	@Test
+	public void testGetEulerianCycle_short_twoloops_true() {
+		int v = 3;
+		
+		Multiset<Edge> e = HashMultiset.create();		
+		
+		Edge e0 = new Edge(0, 1);
+		e.add(e0);
+		Edge loop = new Edge(1, 1);
+		e.add(loop);
+		Edge e1 = new Edge(1, 2);
+		e.add(e1);
+		Edge e2 = new Edge(2, 0);
+		e.add(e2);
+		Edge e3 = new Edge(2, 2);
+		e.add(e3);
+		
+		EdgesGraph graph = edgesFactory.createEdgesGraph(v, e);
+	
+		List<Integer> tour = Lists.newArrayList();
+		
+		tour.add(0);
+		tour.add(1);
+		tour.add(1);
+		tour.add(2);
+		tour.add(2);
+
+		Optional<List<Integer>> tourA = Optional.of(tour);
+		assertTrue(graph.getEulerianCycle(graph, 0).equals(tourA));
+	}
+
+	
+	@Test
+	public void testGetEulerianCycle_short_loopAt0_true() {
+		int v = 3;
+		
+		Multiset<Edge> e = HashMultiset.create();		
+		
+		Edge e0 = new Edge(0, 1);
+		e.add(e0);
+		Edge loop = new Edge(0, 0);
+		e.add(loop);
+		Edge e1 = new Edge(1, 2);
+		e.add(e1);
+		Edge e2 = new Edge(2, 0);
+		e.add(e2);
+		
+		EdgesGraph graph = edgesFactory.createEdgesGraph(v, e);
+	
+		List<Integer> tour = Lists.newArrayList();
+		
+		tour.add(0);
+		tour.add(0);
+		tour.add(1);
+		tour.add(2);
+		
+		Optional<List<Integer>> tourA = Optional.of(tour);
+		assertTrue(graph.getEulerianCycle(graph, 0).equals(tourA));
+	}
+	
+	@Test
+	public void testGetCycle_exception() {
+		int v = 3;
+		
+		Multiset<Edge> e = HashMultiset.create();		
+		
+		Edge e0 = new Edge(0, 1);
+		e.add(e0);
+		Edge e1 = new Edge(1, 2);
+		e.add(e1);
+		
+		EdgesGraph graph = edgesFactory.createEdgesGraph(v, e);
+		
+		assertTrue(graph.getCycle(graph, 0).equals(Optional.absent()));
+	}
+
+
 }

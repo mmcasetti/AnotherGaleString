@@ -6,10 +6,26 @@ import abstractclasses.AbstractGraph;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Multiset;
 
+import exceptions.EdgeNotInGraphException;
+import exceptions.MatrixNotValidException;
+import exceptions.VertexNotInGraphException;
+
 public class MatrixGraph extends AbstractGraph {
 	private int[][] adjacencyMatrix;
 
 	public MatrixGraph(int[][] matrix) {
+		
+		for (int i = 0; i < matrix.length; i++) {
+			if (matrix.length != matrix[i].length) {
+				throw new MatrixNotValidException();			
+			}
+			for (int j = 0; j <= i; j++) {
+				if (matrix[i][j] < 0 || matrix[i][j] != matrix[j][i]) {
+					throw new MatrixNotValidException();
+				}
+			}
+		}
+		
 		this.adjacencyMatrix = matrix;
 	}
 	
@@ -45,7 +61,7 @@ public class MatrixGraph extends AbstractGraph {
 	public Multiset<Edge> getEdgesAt(int vertex) {
 
 		if (vertex >= getNoOfVertices()) {
-			throw new Exceptions.VertexNotInGraphException();
+			throw new VertexNotInGraphException();
 		}
 		
 		Multiset<Edge> edgesAt = HashMultiset.create();
@@ -73,7 +89,7 @@ public class MatrixGraph extends AbstractGraph {
 	@Override
 	public void addEdge(int start, int end) {
 		if (start >= getNoOfVertices() || end >= getNoOfVertices()) {
-			throw new Exceptions.VertexNotInGraphException();
+			throw new VertexNotInGraphException();
 		}
 
 		int[][] newMatrix = new int[getNoOfVertices()][getNoOfVertices()];
@@ -93,7 +109,7 @@ public class MatrixGraph extends AbstractGraph {
 	@Override
 	public void removeVertex(int v) {
 		if (v >= getNoOfVertices()) {
-			throw new Exceptions.VertexNotInGraphException();
+			throw new VertexNotInGraphException();
 		}
 		
 		int[][] newMatrix = new int[getNoOfVertices() - 1][getNoOfVertices() - 1];
@@ -116,11 +132,11 @@ public class MatrixGraph extends AbstractGraph {
 	public void removeEdge(int start, int end) {
 		
 		if (start >= getNoOfVertices() || end >= getNoOfVertices()) {
-			throw new Exceptions.VertexNotInGraphException();
+			throw new VertexNotInGraphException();
 		}
 		
 		if (getMatrix()[start][end] == 0 || getMatrix()[end][start] == 0) {
-			throw new Exceptions.EdgeNotInGraphException();
+			throw new EdgeNotInGraphException();
 		}
 		
 		int[][] newMatrix = new int[getNoOfVertices()][getNoOfVertices()];
@@ -159,7 +175,7 @@ public class MatrixGraph extends AbstractGraph {
 		for (int i = 0; i < getNoOfVertices(); i++) {
 			for (int j = 0; j < getNoOfVertices(); j++) {
 				if (subset[i][j] >= 1 && getMatrix()[i][j] == 0) {
-					throw new Exceptions.EdgeNotInGraphException();
+					throw new EdgeNotInGraphException();
 				}				
 			}
 		}
